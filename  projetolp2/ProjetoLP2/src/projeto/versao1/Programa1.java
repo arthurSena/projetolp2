@@ -1,17 +1,17 @@
 package projeto.versao1;
 
+import java.io.*;
+
 import java.util.*;
+import projeto.Classes.*;
 
-
-
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class Programa1 {
 	
 	private static String loginGerente;
-	private static String loginSupervisor;
-	private static String loginRecepcionista;
-	
-	private static List<FuncionarioQueOperamSistema> listaDeFuncionariosQueOperamSistema;
+	private static List<OperadorSistema> listaDeFuncionariosQueOperamSistema;
 	private static List<Funcionario> funcionariosNormais;
 	private static List<Cliente> listaDeClientes;
 
@@ -22,12 +22,16 @@ public class Programa1 {
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		loginGerente = "gerente";
-		listaDeFuncionariosQueOperamSistema = new ArrayList<FuncionarioQueOperamSistema>();
+		listaDeFuncionariosQueOperamSistema = new ArrayList<OperadorSistema>();
 		funcionariosNormais = new ArrayList<Funcionario>();
 		listaDeClientes = new ArrayList<Cliente>();
 		listaDeSuites = new Suite[20];
 		centroDeConvencoes = new CentroDeConvencoes(Suite.Estado.livre);
-		
+		carregaFuncionariosQueOperamSistema();
+		carregaFuncionarios();
+		carregaClientes();
+		carregaCentroDeConvencoes();
+		carregaSuites();
 		//-------------Criando as Suites------------------
 		for (int i=0;i<20;i++){
 			Suite suite = new Suite(Suite.Estado.livre);
@@ -37,12 +41,12 @@ public class Programa1 {
 		
 		//----------Criando Gerente------------------------
 		try{
-			FuncionarioQueOperamSistema gerente = new FuncionarioQueOperamSistema("Brasil", "Solteiro"
+			OperadorSistema gerente = new OperadorSistema("Brasil", "Solteiro"
 		        	                                       , "00000000000","Super Funcionario","0000000"
 				                                           , null, "00000000" , "gerente@gerente.com",loginGerente,"senhaGerente");
 			
-			
-			listaDeFuncionariosQueOperamSistema.add(gerente);
+			if(!listaDeFuncionariosQueOperamSistema.contains(gerente)){
+				listaDeFuncionariosQueOperamSistema.add(gerente);}
 			
 		}catch(Exception e){
 			System.out.println(e.getMessage());
@@ -59,8 +63,14 @@ public class Programa1 {
 					menu1();	
 			}
 			else if(opcao.equals("2")){
-				System.out.print("\nPrograma Encerrado com Sucesso!\n");
-				System.exit(0);
+				try {
+					salvarInformacoes();
+					System.out.print("\nPrograma Encerrado com Sucesso!\n");
+					System.exit(0);
+				} catch (IOException e) {
+					System.out.println("Deu merda");
+				}
+				
 			}
 			else{
 				System.out.println("\nOpcao Invalida");
@@ -68,6 +78,92 @@ public class Programa1 {
 		}
 	}
 	
+	public static void salvarInformacoes() throws IOException{
+		XStream xstream = new XStream();
+		
+		if (!listaDeFuncionariosQueOperamSistema.isEmpty()){
+			BufferedWriter writer = new BufferedWriter(new FileWriter("FuncionariosOperamSistema.xml"));
+			String func = xstream.toXML(listaDeFuncionariosQueOperamSistema);
+			writer.write(func);
+			writer.close();
+		}
+		
+		if(!funcionariosNormais.isEmpty()){
+			BufferedWriter writer = new BufferedWriter(new FileWriter("FuncionariosNormais.xml"));
+			String func = xstream.toXML(funcionariosNormais);
+			writer.write(func);
+			writer.close();
+		}
+		
+		if(!listaDeClientes.isEmpty()){
+			BufferedWriter writer = new BufferedWriter(new FileWriter("ListaDeClientes.xml"));
+			String func = xstream.toXML(listaDeClientes);
+			writer.write(func);
+			writer.close();
+		}
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter("CentroDeConvencoes.xml"));
+		String cc = xstream.toXML(centroDeConvencoes);
+		writer.write(cc);
+		writer.close();
+		
+		BufferedWriter writer1 = new BufferedWriter(new FileWriter("Suites.xml"));
+		String suites = xstream.toXML(listaDeSuites);
+		writer1.write(suites);
+		writer1.close();
+	}
+	
+	public static void carregaFuncionariosQueOperamSistema(){
+		XStream xstream = new XStream(new DomDriver());
+		try{
+			FileReader reader1 = new FileReader("FuncionariosOperamSistema.xml");
+			listaDeFuncionariosQueOperamSistema = ((List)xstream.fromXML(reader1));
+		}
+		catch(Exception e){
+		
+		}
+	}
+	
+	public static void carregaFuncionarios(){
+		XStream xstream = new XStream(new DomDriver());
+		try{
+			FileReader reader2 = new FileReader("FuncionariosNormais.xml");
+			funcionariosNormais = ((List)xstream.fromXML(reader2));
+		}catch(Exception e){
+			
+		}
+	}
+	
+	public static void carregaClientes(){
+		XStream xstream = new XStream(new DomDriver());
+		try{
+			FileReader reader3 = new FileReader("ListaDeClientes.xml");
+			listaDeClientes = ((List)xstream.fromXML(reader3));
+		}catch(Exception e){
+			
+		}
+	}
+	
+	public static void carregaCentroDeConvencoes(){
+		XStream xstream = new XStream(new DomDriver());
+		try{
+			FileReader reader4 = new FileReader("CentroDeConvencoes.xml");
+			centroDeConvencoes = (CentroDeConvencoes)xstream.fromXML(reader4);
+		}
+		catch(Exception e){
+			
+		}
+	}
+	
+	public static void carregaSuites(){
+		XStream xstream = new XStream(new DomDriver());
+		try{
+			FileReader reader5 = new FileReader("Suites.xml");
+			listaDeSuites = (Suite[])xstream.fromXML(reader5);
+		}catch(Exception e){
+			
+		}
+	}
 	
 	public static void menu1(){
 		String login, senha;
@@ -83,13 +179,12 @@ public class Programa1 {
 		boolean conseguiuLogar=false;
 		
 		for(int i = 0; i < listaDeFuncionariosQueOperamSistema.size(); i++){
-			FuncionarioQueOperamSistema proximoFuncionario = listaDeFuncionariosQueOperamSistema.get(i);
+			OperadorSistema proximoFuncionario = listaDeFuncionariosQueOperamSistema.get(i);
 						
 			if (login.equals(proximoFuncionario.getLogin()) && senha.equals(proximoFuncionario.getSenha()) && login.equals(loginGerente)){
 				conseguiuLogar=true;
 				menu2(true,proximoFuncionario);
 				break;
-			
 			}
 			
 			else if(login.equals(proximoFuncionario.getLogin()) && senha.equals(proximoFuncionario.getSenha()) && !login.equals(loginGerente)){
@@ -101,12 +196,9 @@ public class Programa1 {
 		if(!(conseguiuLogar)){
 			System.out.println("Login ou senha invalidos \n");
 		}
-		
-		
-		
 	}
 	
-	public static void menu2(boolean ehGerente, FuncionarioQueOperamSistema funcionarioQueEstaLogado){
+	public static void menu2(boolean ehGerente, OperadorSistema funcionarioQueEstaLogado){
 		Scanner sc = new Scanner(System.in);
 		String opcao;
 		
@@ -120,8 +212,10 @@ public class Programa1 {
 			System.out.println("6. Criar Pacote");
 			System.out.println("7. Editar minha informacoes");
 			System.out.println("8. Gerenciamento de Suites");
-			System.out.println("9. Gerenciamento do Centro De Convencoes");
-			System.out.println("10. Deslogar ");
+			System.out.println("9. Gerenciamento do Centro De Convencoes(Registro de Eventos)");
+			System.out.println("10. Adicionando servicos Adcionais");
+			System.out.println("11. Efetuar CHECK-IN");
+			System.out.println("11. Deslogar ");
 			
 			System.out.print("Digite a opcao desejada: ");
 			opcao = sc.nextLine();
@@ -160,8 +254,7 @@ public class Programa1 {
 				if (ehGerente){
 					System.out.print("Digite o numero do CPF do individuo que sera excluido: ");
 					String cpfQueSeraExcluido = sc.nextLine();
-					excluirCadastro(cpfQueSeraExcluido);
-					
+					excluirCadastro(cpfQueSeraExcluido);			
 				}
 				
 				else{
@@ -170,7 +263,7 @@ public class Programa1 {
 				
 			}
 			
-			else if(opcao.equals("10")){
+			else if(opcao.equals("11")){
 				System.out.println("\nVoce foi deslogado da sua conta\n");
 				break;
 			}
@@ -196,6 +289,11 @@ public class Programa1 {
 				
 			}
 			
+			else if(opcao.equals("10")){
+				System.out.print("Digite o CPF do cliente: ");
+				String opcao1 = sc.nextLine();
+			}
+			
 			else{
 				System.out.println("\nOpcao Invalida");
 			}
@@ -203,18 +301,48 @@ public class Programa1 {
 		
 	}
 	
+	public static void adcionaServicos(String cpf){
+		Scanner sc = new Scanner(System.in);
+		
+		boolean clienteFoiEncontrado = false;
+		
+		Cliente cliente = null;
+		int indice = 0;
+		
+		for (int i = 0; i< listaDeClientes.size();i++){
+			if(listaDeClientes.get(i).getCPF().equals(cpf)){
+				clienteFoiEncontrado = true;
+				cliente =  listaDeClientes.get(i);
+				indice= i;
+				break;
+			}
+		}
+		
+		if(clienteFoiEncontrado){
+			
+			while (true){
+				System.out.println("1. Adicionar Refeicao\n2. Adicionar Lanche\n3.Adicionar Massagem");
+			}
+			
+		}
+		else if(!clienteFoiEncontrado){
+			System.out.println("Cliente nao esta cadastrado");
+		}
+		
+	}
+	
 	public static void criarPacote()throws Exception{
 		
 		while(true){
-		System.out.println("\n1.Pacote1: \n"+"AtÃ© 10 pessoas \nAte 1 semana\n"
-							+"10% de desconto nas diÃ¡rias\n");
+		System.out.println("\n1.Pacote1: \n"+"Até 10 pessoas \nAte 1 semana\n"
+							+"10% de desconto nas diárias\n");
 		System.out.println("2.Pacote2: \n"+"Ate 15 pessoas\n"+"Ate 1 semana\n"+"15% por cento de desconto nas diarias\n");
 		System.out.println("3.Pacote3: \n"+"Ate 20 pessoas\n"+"Ate 2 semanas\n"+"15% por cento de desconto nas diarias\n");
 		System.out.print("4.Sair\n"+"Digite sua Opcao: ");
 		String opcao=lerString();
 		
 		if (opcao.equals("1")){
-			Pacote pacote1 = new Pacote(6,9);
+			PacoteTuristico pacote1 = new PacoteTuristico(6,9);
 			int cont = 0;
 			cadastrarCliente(pacote1);
 			cont++;
@@ -235,11 +363,10 @@ public class Programa1 {
 					System.out.println("\nOpcao Invalida");
 				}
 			}
-			
-			
 		}
+		
 		else if(opcao.equals("2")){
-			Pacote pacote2 = new Pacote(7,13);
+			PacoteTuristico pacote2 = new PacoteTuristico(7,13);
 			int cont = 0;
 			cadastrarCliente(pacote2);
 			cont++;
@@ -260,10 +387,9 @@ public class Programa1 {
 					System.out.println("\nOpcao Invalida");
 				}
 			}
-		
 		}
 		else if(opcao.equals("3")){
-			Pacote pacote3 = new Pacote(18,19);
+			PacoteTuristico pacote3 = new PacoteTuristico(18,19);
 			int cont = 0;
 			cadastrarCliente(pacote3);
 			cont++;
@@ -333,27 +459,42 @@ public class Programa1 {
 			}
 		}
 	}
+	
 	public static String lerString(){
         Scanner sc = new Scanner(System.in);
         return sc.nextLine();
 	}
+	
 	public static void buscarSuiteLivre(){
 		Scanner sc = new Scanner(System.in);
 		int cont = 0;
+		System.out.println();
 		for(Suite suites : listaDeSuites){
 			if(suites.getEstado().equals(Suite.Estado.livre)){
+				System.out.println((cont+1)+ ".  SUITE LIVRE");
 				cont++;
 			}
+			if(suites.getEstado().equals(Suite.Estado.reservado)){
+				System.out.println(+(cont+1)+". SUITE SE ENCONTRA RESERVADA");}
+			if(suites.getEstado().equals(Suite.Estado.ocupado)){
+				System.out.println((cont+1)+ ". SUITE SE ECOnTRA OCUPADA");}
 		}
-		System.out.println("Ha " + cont +" Suites Livres");
+		
+		System.out.println("Ha " + cont +" Suites Livres\n");
 		while(true){
+			int cont1 = 0;
+			for(Suite suites : listaDeSuites){
+				if(suites.getEstado().equals(Suite.Estado.livre)){
+					cont1++;
+				}
+			}
 			System.out.println("1.Reservar Suite\n"+"2.Desocupar Suite\n"+"3. Sair");
 			System.out.print("O que voce deseja Fazer: ");
 			String opcao = sc.nextLine();
-			if(opcao.equals("1") && cont==0){
+			if(opcao.equals("1") && cont1==0){
 				System.out.println("\nNao ha mais suites livres");
 			}
-			else if(opcao.equals("1") && cont!=0){
+			else if(opcao.equals("1") && cont1!=0){
 				for(Suite suites : listaDeSuites){
 					if(suites.getEstado().equals(Suite.Estado.livre)){
 						suites.setEstado(Suite.Estado.ocupado);
@@ -379,7 +520,7 @@ public class Programa1 {
 			}
 		}
 	}
-	public static void editarFuncionariosQueOperamSistema(FuncionarioQueOperamSistema funcionario){
+	public static void editarFuncionariosQueOperamSistema(OperadorSistema funcionario){
 		Scanner sc = new Scanner(System.in);
 		
 		while(true){
@@ -641,8 +782,8 @@ public class Programa1 {
 		String estado, cidade, rua, bairro, numero, cep;
 		Endereco endereco = null;		
 		Funcionario novoFuncionario;
-		FuncionarioQueOperamSistema supervisor;
-		FuncionarioQueOperamSistema recepcionista;
+		OperadorSistema supervisor;
+		OperadorSistema recepcionista;
 		
 		System.out.print("\nNome completo: ");
 		nomeCompleto = sc.nextLine().trim();
@@ -703,7 +844,7 @@ public class Programa1 {
 				System.out.print("Senha: ");
 				senha = sc.nextLine().trim();
 				
-				supervisor = new FuncionarioQueOperamSistema(naturalidade, estadoCivil
+				supervisor = new OperadorSistema(naturalidade, estadoCivil
                         , cpf, nomeCompleto, rg, endereco
                         , telefone, email,login, senha);
 				
@@ -723,7 +864,7 @@ public class Programa1 {
 				System.out.print("Senha: ");
 				senha = sc.nextLine().trim();
 				
-				recepcionista = new FuncionarioQueOperamSistema(naturalidade, estadoCivil
+				recepcionista = new OperadorSistema(naturalidade, estadoCivil
                         , cpf, nomeCompleto, rg, endereco
                         , telefone, email,login, senha);
 				
@@ -751,7 +892,7 @@ public class Programa1 {
 		}
 	}
 	
-	public static void cadastrarCliente(Pacote pacote){
+	public static void cadastrarCliente(PacoteTuristico pacote){
 		Scanner sc = new Scanner(System.in);
 		String cpf; String nomeCompleto; String rg; 
 	    Endereco endereco = null; String telefone; String email;
@@ -1040,7 +1181,7 @@ public class Programa1 {
 			System.out.println("Digite a opcao que voce deseja modificar: "+
 								"1. Nome\n"+"2. Naturalidade\n"+"3. Estado Civil\n" + "4. CPF\n" +
 								"5. RG\n" + "6. Telefone\n" + "7. Email\n" + "8. Estado \n" +"9. Cidade\n" +"10. Bairro\n" + "11. Rua\n" + "12. Numero\n" +
-								"13. Cep\n");
+								"13. Cep\n"+"14. Sair\n");
 			
 			String opcao = sc.nextLine();
 			
@@ -1247,6 +1388,10 @@ public class Programa1 {
 				
 			}
 			
+			else if(opcao.equals("14")){
+				break;
+			}
+			
 			else{
 				System.out.println("Opcao Invalida!");
 			}
@@ -1254,16 +1399,14 @@ public class Programa1 {
 		}
 		
 		else{
-			System.out.println("Funcionario nÃ£o foi encontrado");
+			System.out.println("Funcionario não foi encontrado");
 		}
-		
 	}
 	
 	public static void excluirCadastro(String cpf){
 		boolean funcionarioQueOperaSistemaRemovido = false;
 		boolean funcionarioRemovido=false;
 		boolean clienteRemovido=false;
-		
 		
 		if(!(funcionarioQueOperaSistemaRemovido)){
 			for (int i=0;i<listaDeFuncionariosQueOperamSistema.size();i++){
